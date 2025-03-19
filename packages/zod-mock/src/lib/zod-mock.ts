@@ -50,7 +50,7 @@ function parseRecord<
   }, {});
 }
 
-type FakerFunction = () => string | number | boolean | Date;
+type FakerFunction = () => string | number | boolean | Date | null;
 
 function findMatchingFaker(
   keyName: string,
@@ -139,7 +139,7 @@ function generateMockFromMatchingFaker(options?: GenerateMockOptions) {
 function parseString(
   zodRef: z.ZodString,
   options?: GenerateMockOptions
-): string | number | boolean {
+): string | number | boolean | null {
   // Prioritize user provided generators.
   if (options?.keyName && options.stringMap) {
     // min/max length handling is not applied here
@@ -271,7 +271,9 @@ function parseString(
   // will never parse without producing errors, we will prioritize
   // the max value because exceeding it represents a potential security
   // vulnerability (buffer overflows).
-  let val = generator().toString();
+  let generated = generator()
+  if (generated === null) return null
+  let val = generated?.toString() || '';
   const delta = targetStringLength - val.length;
   if (stringOptions.min != null && val.length < stringOptions.min) {
     val = val + fakerInstance.string.alpha(delta);
